@@ -4,6 +4,28 @@ plugins {
 
 android {
     namespace 'com.example.audiostreamer'
+    compileSdk 33
+    …
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+
+    // нужен для видеосервера
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+}
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example.audiostreamer'
     compileSdk 34
 
     defaultConfig {
