@@ -5,7 +5,9 @@ import android.util.Log;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 public class VideoHttpServer extends NanoHTTPD {
 
@@ -23,29 +25,21 @@ public class VideoHttpServer extends NanoHTTPD {
         String uri = session.getUri();
 
         if ("/stream".equals(uri) || "/".equals(uri)) {
+            try {
+                PipedOutputStream out = new PipedOutputStream();
+                PipedInputStream in = new PipedInputStream(out);
 
-            return newChunkedResponse(
-                    Response.Status.OK,
-                    "multipart/x-mixed-replace; boundary=" + BOUNDARY,
-                    new IStreamer() {
-                        @Override
-                        public void stream(OutputStream outputStream) throws IOException {
-                            running = true;
-                            try {
-                                while (running) {
-                                    byte[] jpeg = cameraPreview.getLatestJpeg();
-                                    if (jpeg != null) {
-                                        writeFrame(outputStream, jpeg);
-                                    }
-                                    Thread.sleep(66);
-                                }
-                            } catch (InterruptedException ignored) {
-                            } finally {
-                                running = false;
-                            }
-                        }
-                    }
-            );
+                startStreamingThread(out);
+
+                return newChunkedResponse(
+                        Response.Status.OK,
+                        "multipart/x-mixed-replace; boundary=" + BOUNDARY,
+                        in
+                );
+
+            } catch (IOException e) {
+                return newFixedLengthResponse("Stream error");
+            }
         }
 
         String html = "<html><body>"
@@ -56,7 +50,26 @@ public class VideoHttpServer extends NanoHTTPD {
         return newFixedLengthResponse(Response.Status.OK, "text/html", html);
     }
 
-    private void writeFrame(OutputStream out, byte[] jpeg) throws IOException {
+    private void startStreamingThread(PipedOutputStream out) {
+        running = true;
+
+        new Thread(() -> {
+            try {
+                while (running) {
+                    byte[] jpeg = cameraPreview.getLatestJpeg();
+                    if (jpeg != null) writeFrame(out, jpeg);
+                    Thread.sleep(66); // ~15 FPS
+                }
+            } catch (Exception e) {
+                Log.e("VideoHttpServer", "stream stopped");
+            } finally {
+                running = false;
+                try { out.close(); } catch (IOException ignored) {}
+            }
+        }).start();
+    }
+
+    private void writeFrame(PipedOutputStream out, byte[] jpeg) throws IOException {
         String header = "\r\n--" + BOUNDARY + "\r\n"
                 + "Content-Type: image/jpeg\r\n"
                 + "Content-Length: " + jpeg.length + "\r\n\r\n";
