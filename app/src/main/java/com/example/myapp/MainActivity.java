@@ -1,4 +1,4 @@
-package com.example.myapp; // поменяй package
+package com.example.myapp;
 
 import android.Manifest;
 import android.content.Context;
@@ -6,10 +6,10 @@ import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
-import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         tvStatus = findViewById(R.id.tvStatus);
         tvUrl = findViewById(R.id.tvUrl);
         btnStart = findViewById(R.id.btnStart);
@@ -38,18 +39,23 @@ public class MainActivity extends AppCompatActivity {
         btnStart.setOnClickListener(v -> startStream());
         btnStop.setOnClickListener(v -> stopStream());
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
-        } else {
-            // permission granted - nothing to do now
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.CAMERA},
+                    REQ_CAMERA
+            );
         }
     }
 
     private void startStream() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
             tvStatus.setText("Server: CAMERA permission required");
             return;
         }
+
         boolean ok = cameraPreview.startCameraFront();
         if (!ok) {
             tvStatus.setText("Server: camera start failed");
@@ -59,12 +65,13 @@ public class MainActivity extends AppCompatActivity {
         if (httpServer == null) {
             httpServer = new VideoHttpServer(PORT, cameraPreview);
             try {
-                httpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+                httpServer.start();   // ← ИСПРАВЛЕННОЕ МЕСТО
             } catch (Exception e) {
                 tvStatus.setText("Server: start failed");
                 return;
             }
         }
+
         String ip = getLocalIpAddress();
         tvUrl.setText("URL: http://" + ip + ":" + PORT + "/stream");
         tvStatus.setText("Server: ON");
@@ -80,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getLocalIpAddress() {
-        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wm = (WifiManager) getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
         return Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 
@@ -91,13 +99,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,@NonNull String[] permissions,@NonNull int[] grantResults){
+    public void onRequestPermissionsResult(
+            int requestCode,
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults
+    ) {
         if (requestCode == REQ_CAMERA) {
-            if (grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED) {
-                // ok
-            } else {
+            if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 tvStatus.setText("Server: camera permission denied");
             }
-        } else super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }
