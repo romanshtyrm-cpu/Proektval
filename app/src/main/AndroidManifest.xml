@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.myapp">
 
-    <!-- 🔥 Новые разрешения -->
+    <!-- 🔥 Разрешения -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Можешь удалить, больше не нужно (только для старого аудио) -->
-    <!-- <uses-permission android:name="android.permission.RECORD_AUDIO"/> -->
-
-    <!-- 🔥 Возможность использовать камеры устройства -->
+    <!-- Камеры -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
