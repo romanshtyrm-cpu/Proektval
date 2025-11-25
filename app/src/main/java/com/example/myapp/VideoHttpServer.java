@@ -2,10 +2,7 @@ package com.example.myapp; // поменяй package
 
 import android.util.Log;
 
-import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
 import java.io.OutputStream;
