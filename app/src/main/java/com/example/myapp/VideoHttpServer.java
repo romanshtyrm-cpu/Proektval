@@ -1,7 +1,9 @@
 package com.example.myapp;
 
 import android.util.Log;
+
 import fi.iki.elonen.NanoHTTPD;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -21,32 +23,29 @@ public class VideoHttpServer extends NanoHTTPD {
         String uri = session.getUri();
 
         if ("/stream".equals(uri) || "/".equals(uri)) {
-            return newChunkedResponse(Response.Status.OK,
+
+            return newChunkedResponse(
+                    Response.Status.OK,
                     "multipart/x-mixed-replace; boundary=" + BOUNDARY,
-                    outputStream -> {
-
-                        running = true;
-
-                        try {
-                            while (running) {
-                                byte[] jpeg = cameraPreview.getLatestJpeg();
-
-                                if (jpeg != null) {
-                                    try {
+                    new IStreamer() {
+                        @Override
+                        public void stream(OutputStream outputStream) throws IOException {
+                            running = true;
+                            try {
+                                while (running) {
+                                    byte[] jpeg = cameraPreview.getLatestJpeg();
+                                    if (jpeg != null) {
                                         writeFrame(outputStream, jpeg);
-                                    } catch (IOException e) {
-                                        Log.i("VideoHttpServer", "client disconnected");
-                                        break;
                                     }
+                                    Thread.sleep(66);
                                 }
-                                Thread.sleep(66);
+                            } catch (InterruptedException ignored) {
+                            } finally {
+                                running = false;
                             }
-
-                        } catch (InterruptedException ignored) {
-                        } finally {
-                            running = false;
                         }
-                    });
+                    }
+            );
         }
 
         String html = "<html><body>"
