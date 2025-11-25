@@ -5,43 +5,23 @@ plugins {
 android {
     namespace 'com.example.audiostreamer'
     compileSdk 33
-    …
-}
-
-repositories {
-    google()
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
-
-    // нужен для видеосервера
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
-}
-plugins {
-    id 'com.android.application'
-}
-
-android {
-    namespace 'com.example.audiostreamer'
-    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.audiostreamer"
-        minSdk 21
-        targetSdk 34
+        minSdk 24
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
         multiDexEnabled true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
         }
     }
 
@@ -51,13 +31,23 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 dependencies {
 
-    // 🔥 Наш видеосервер MJPEG
+    // 🔥 Для MJPEG-сервера (VideoHttpServer)
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
 
-    // Стандартные зависимости
+    // Базовые библиотеки Android
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Тестовые библиотеки (можно оставить)
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
