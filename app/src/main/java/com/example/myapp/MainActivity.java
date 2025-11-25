@@ -1,11 +1,8 @@
 package com.example.myapp;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.text.format.Formatter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -13,6 +10,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQ_CAMERA = 101;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         if (httpServer == null) {
             httpServer = new VideoHttpServer(PORT, cameraPreview);
             try {
-                httpServer.start();   // ← ИСПРАВЛЕННОЕ МЕСТО
+                httpServer.start();
             } catch (Exception e) {
                 tvStatus.setText("Server: start failed");
                 return;
@@ -86,10 +88,31 @@ public class MainActivity extends AppCompatActivity {
         tvStatus.setText("Server: OFF");
     }
 
+    // ✔ Новый метод без разрешений и без ошибок
     private String getLocalIpAddress() {
-        WifiManager wm = (WifiManager) getApplicationContext()
-                .getSystemService(Context.WIFI_SERVICE);
-        return Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+                 en.hasMoreElements();) {
+
+                NetworkInterface intf = en.nextElement();
+
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+                     enumIpAddr.hasMoreElements();) {
+
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+
+                    if (!inetAddress.isLoopbackAddress()
+                            && inetAddress instanceof Inet4Address) {
+
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return "0.0.0.0";
     }
 
     @Override
